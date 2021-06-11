@@ -1,0 +1,7 @@
+
+{}
+
+{"type": "update", "userid": 1, "info": { "mood": "crazy" }}
+
+{"type": "new", "userid": 1, "info": { "name": "charles", "mood": "happy" }}
+{"type": "update", "userid": 1, "info": { "mood": "chilled" }}
