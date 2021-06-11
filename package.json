@@ -1,0 +1,20 @@
+{
+  "name": "nodedb",
+  "version": "0.1.0",
+  "description": "Easy to Use, Robust, file-based DB for Node",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theproductiveprogrammer/node-db.git"
+  },
+  "author": "charles.lobo@gmail.com",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/theproductiveprogrammer/node-db/issues"
+  },
+  "homepage": "https://github.com/theproductiveprogrammer/node-db#readme",
+  "keywords": ["database","db","log"]
+}
