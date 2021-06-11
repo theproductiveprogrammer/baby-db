@@ -1,5 +1,5 @@
 {
-  "name": "nodedb",
+  "name": "node-db",
   "version": "0.1.0",
   "description": "Easy to Use, Robust, file-based DB for Node",
   "main": "index.js",
