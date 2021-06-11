@@ -1,12 +1,12 @@
 # Node DB
 
-A simple, robust, file-based DB for Node. Acts as an append-only store for objects.
+A easy-to-use, robust, file-based DB for Node. Acts as an append-only store for objects.
 
 ![icon](./node-db.png)
 
 ## Motivation
 
-When writing NodeJs projects I often find I need a simple, understandable, yet robust database that I can throw into my project without needing to install another database server and configure a connection etc.
+When writing NodeJs projects I often find I need an easy-to-use, understandable, yet robust database that I can throw into my project without needing to install another database server and configure a connection etc.
 
 What I needed was a dead simple library that I could plug into any project and that would:
 
@@ -21,7 +21,7 @@ And so **NodeDB** was born.
 
 **NodeDB** stores data in an [append only](https://en.wikipedia.org/wiki/Append-only) log file. This makes it almost impossible to lose data (except if the underlying hardware fails). It’s also a very flexible way to store data - it’s easy to add fields, change the schema and so on by upgrading the processor.
 
-Each instance requires us to pass in a “processor” that consumes each record log and aggregates or stores it for use by the rest of the system. **NodeDB** itself streams the data records so it has very low memory overhead.
+Each instance requires us to pass in a “processor” that consumes each record and aggregates or stores it for use by the rest of the system. **NodeDB** itself streams the data records so it has very low memory overhead.
 
 To keep things simple, while you could have all data stored in a single log file, it may be better to store each “table” of data in it’s own file.
 
@@ -42,6 +42,8 @@ userdb.on("done", () => console.log("ready to rumble!..."))
 ...
 userdb.add({ type: "new", userid: id++, info: {name: ...}})
 ```
+
+Enjoy!
 
 ------
 
