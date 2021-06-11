@@ -3,11 +3,11 @@ const EventEmitter = require('events')
 const fs = require('fs')
 const readline = require('readline')
 
-class NodeDB extends EventEmitter {}
+class LittleDB extends EventEmitter {}
 
 
 module.exports = file => {
-  const nodedb = new NodeDB()
+  const db = new LittleDB()
 
   /*    way/
    * stream in the file, line-by-line, and process each line as a record
@@ -15,10 +15,10 @@ module.exports = file => {
   function load() {
     const input = fs.createReadStream(file)
     input.on('error', err => {
-      if(err.code === 'ENOENT') nodedb.emit('done')
-      else nodedb.emit('error', err)
+      if(err.code === 'ENOENT') db.emit('done')
+      else db.emit('error', err)
     })
-    input.on('end', () => nodedb.emit('done'))
+    input.on('end', () => db.emit('done'))
 
     let num = 0
     const rl = readline.createInterface({ input, crlfDelay: Infinity })
@@ -32,14 +32,14 @@ module.exports = file => {
       try {
         rec = JSON.parse(line)
       } catch(err) {
-        nodedb.emit('error', `Failed parsing ${file}:${num}:${line}`)
+        db.emit('error', `Failed parsing ${file}:${num}:${line}`)
       }
       if(!rec) return
 
       try {
-        nodedb.emit('rec', rec, num)
+        db.emit('rec', rec, num)
       } catch(err) {
-        nodedb.emit('error', err)
+        db.emit('error', err)
       }
 
     })
@@ -47,5 +47,5 @@ module.exports = file => {
 
   load()
 
-  return nodedb
+  return db
 }
