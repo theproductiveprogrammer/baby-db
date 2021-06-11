@@ -33,8 +33,8 @@ const nodedb = require('node-db')
 ...
 const userdb = nodedb(userfile)
 userdb.on("rec", (rec, num) => {
-  if(rec.type == "new") USERS[rec.userid] = rec.info
-  else if(rec.type == "del") delete USERS[rec.userid]
+  if(rec.type === "new") USERS[rec.userid] = rec.info
+  else if(rec.type === "del") delete USERS[rec.userid]
   else throw `Did not understand record: ${num}`
 })
 userdb.on("error", err => console.error(err))
