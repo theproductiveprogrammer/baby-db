@@ -3,11 +3,11 @@ const EventEmitter = require('events')
 const fs = require('fs')
 const readline = require('readline')
 
-class LittleDB extends EventEmitter {}
+class BabyDB extends EventEmitter {}
 
 
 module.exports = file => {
-  const db = new LittleDB()
+  const db = new BabyDB()
 
   /*    way/
    * stream in the file, line-by-line, and process each line as a record

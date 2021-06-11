@@ -1,8 +1,8 @@
-# Little DB
+# Baby DB
 
 A easy-to-use, robust, file-based DB for Node. Acts as an append-only store for objects.
 
-![icon](./little-db.png)
+![icon](./baby-db.png)
 
 ## Motivation
 
@@ -15,23 +15,23 @@ What I needed was a dead simple library that I could plug into any project and t
 3. Be easy to backup
 4. Be able to scale up reasonably well for small to mid-sized projects.
 
-And so **Little DB** was born.
+And so **Baby DB** was born.
 
-## How to Use Little DB
+## How to Use Baby DB
 
-**Little DB** stores data in an [append only](https://en.wikipedia.org/wiki/Append-only) log file. This makes it almost impossible to lose data (except if the underlying hardware fails). It’s also a very flexible way to store data - it’s easy to add fields, change the schema and so on by upgrading the processor.
+**Baby DB** stores data in an [append only](https://en.wikipedia.org/wiki/Append-only) log file. This makes it almost impossible to lose data (except if the underlying hardware fails). It’s also a very flexible way to store data - it’s easy to add fields, change the schema and so on by upgrading the processor.
 
-Each instance requires us to pass in a “processor” that consumes each record and aggregates or stores it for use by the rest of the system.  **Little DB** itself streams the data records so it has very low memory overhead.
+Each instance requires us to pass in a “processor” that consumes each record and aggregates or stores it for use by the rest of the system.  **Baby DB** itself streams the data records so it has very low memory overhead.
 
 To keep things simple, while you could have all data stored in a single log file, it may be better to store each “table” of data in it’s own file.
 
 ### Example
 
 ```javascript
-const littledb = require('node-db')
+const badb = require('baby-db')
 
 ...
-const userdb = littledb(userfile)
+const userdb = badb(userfile)
 userdb.on("rec", (rec, num) => {
   if(rec.type === "new") USERS[rec.userid] = rec.info
   else if(rec.type === "del") delete USERS[rec.userid]

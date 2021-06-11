@@ -1,10 +1,10 @@
 'use strict'
-const littledb = require('..')
+const badb = require('..')
 const path = require('path')
 
 const USERS = {}
 
-const userdb = littledb(path.join(__dirname, 'users.db'))
+const userdb = badb(path.join(__dirname, 'users.db'))
 
 let numerrs = 0
 userdb.on('error', err => {
