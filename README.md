@@ -43,6 +43,18 @@ userdb.on("done", () => console.log("ready to rumble!..."))
 userdb.add({ type: "new", userid: id++, info: {name: ...}})
 ```
 
+## Clean Exits
+
+**Baby DB** is designed to support persisting it’s data and cleanly exiting. You can do this by calling `db.stop()` or (recommended), by installing the `onExitSignal()` handler which will trap all common exit signals and flush the data to disk.
+
+```javascript
+userdb.onExitSignal(() => {
+  process.exit() // use process.exit() otherwise the application will not exit
+})
+```
+
+
+
 Enjoy!
 
 ------
