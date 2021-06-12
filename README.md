@@ -32,15 +32,39 @@ const badb = require('baby-db')
 
 ...
 const userdb = badb(userfile)
-userdb.on("rec", (rec, num) => {
-  if(rec.type === "new") USERS[rec.userid] = rec.info
-  else if(rec.type === "del") delete USERS[rec.userid]
-  else throw `Did not understand record: ${num}`
+userdb.on('error', err => console.error(err))
+userdb.on('rec', (rec, num) => {
+  switch(rec.type) {
+    case 'new':
+      USERS[rec.userid] = rec.info
+      break
+    case 'update':
+      if(!USERS[rec.userid]) throw `Cannot update non-existent record on line: ${num}`
+      Object.assign(USERS[rec.userid], rec.info)
+      break
+    case 'delete':
+      delete USERS[rec.userid]
+      break
+    default:
+      throw `Did not understand record type: "${rec.type}", on line: ${num}`
+  }
 })
-userdb.on("error", err => console.error(err))
-userdb.on("done", () => console.log("ready to rumble!..."))
-...
-userdb.add({ type: "new", userid: id++, info: {name: ...}})
+userdb.on('done', () => {
+
+  const jack = 2;
+  userdb.add({ type: 'new', userid: jack, info: { name: 'jack', mood: 'annoyed'}})
+  userdb.add({ type: 'update', userid: jack, info: { mood: 'really annoyed'}})
+  userdb.add({ type: 'delete', userid: jack})
+
+  const jill = 3;
+  userdb.add({ type: 'new', userid: jill, info: { name: 'jill', mood: 'sleepy'}})
+  userdb.add({ type: 'update', userid: jill, info: { mood: 'hungry'}})
+
+  console.log("ready to rumble....!")
+})
+
+userdb.onExitSignal(() => process.exit())
+
 ```
 
 ## Clean Exits
