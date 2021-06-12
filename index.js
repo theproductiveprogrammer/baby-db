@@ -79,6 +79,7 @@ module.exports = file => {
     function p_1(ndx) {
       if(ndx >= saveBuffer.length) {
         saving = false
+        saveBuffer = []
         return cb()
       }
       let data = ""
