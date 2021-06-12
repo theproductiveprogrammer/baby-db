@@ -71,6 +71,28 @@ module.exports = file => {
     }
   }
 
+  function saveNow() {
+    if(saving) return
+    saving = true
+    let data = ""
+    for(let i = 0;i < saveBuffer.length;i++) data += saveBuffer[i]
+    saveBuffer = []
+    try {
+      fs.appendFileSync(file, data)
+      saving = false
+    } catch(err) {
+      db.emit('error', err)
+    }
+  }
+
+  function saveNExit() {
+    saveNow()
+    process.exit(process.exitCode)
+  }
+
+  process.on('SIGINT', saveNExit)
+  process.on('SIGTERM', saveNExit)
+  process.on('SIGBREAK', saveNExit)
 
   function persist(cb) {
     saving = true
