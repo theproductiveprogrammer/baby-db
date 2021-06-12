@@ -8,6 +8,7 @@ const userdb = badb(path.join(__dirname, 'users.db'))
 
 let numerrs = 0
 userdb.on('error', err => {
+  if(err === 'overflow') return
   numerrs++
   console.error(err)
 })
@@ -33,6 +34,7 @@ userdb.on('rec', (rec, num) => {
 })
 userdb.on('done', () => {
   console.log()
+  let loaderrs = numerrs
 
   const jack = ++userid;
   userdb.add({ type: 'new', userid: jack, info: { name: 'jack', mood: 'annoyed'}})
@@ -43,6 +45,10 @@ userdb.on('done', () => {
   userdb.add({ type: 'new', userid: jill, info: { name: 'jill', mood: 'sleepy'}})
   userdb.add({ type: 'update', userid: jill, info: { mood: 'hungry'}})
 
+  for(let i = 0;i < 10000;i++) {
+    userdb.add({ type: 'ignore', userid: i+1000, info: {}})
+  }
+
   console.log('waiting 5 seconds to add james...')
   setTimeout(() => {
     const james = ++userid;
@@ -51,14 +57,11 @@ userdb.on('done', () => {
 
     console.log('******')
     console.log('Users loaded', JSON.stringify(USERS, 0, 2))
-    if(numerrs) console.log(`FOUND ${numerrs} errors!`)
+    if(loaderrs) console.log(`FOUND ${loaderrs} errors!`)
     console.log("ready to rumble....!")
 
   }, 5000)
 
-  for(let i = 0;i < 10000;i++) {
-    userdb.add({ type: 'ignore', userid: i+1000, info: {}})
-  }
 
 })
 userdb.on('overflow', rec => {
