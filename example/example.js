@@ -57,3 +57,6 @@ userdb.on('done', () => {
 
 })
 
+userdb.onExitSignal(() => {
+  process.exit()
+})

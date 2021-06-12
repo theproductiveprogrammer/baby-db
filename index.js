@@ -15,6 +15,7 @@ module.exports = file => {
   let saveBuffer = []
   let savetimer
   let saving = false
+  let stopped = false
 
   /*    way/
    * stream in the file, line-by-line, and process each line as a record
@@ -69,13 +70,15 @@ module.exports = file => {
 
 
   function save(rec) {
-    saveBuffer.push(JSON.stringify(rec) + '\n')
+    const line = JSON.stringify(rec) + '\n'
+    if(stopped) throw `DB ${file} stopped. Cannot save ${line}`
+    saveBuffer.push(line)
     if(!savetimer) {
       savetimer = setTimeout(() => persist(() => savetimer = 0), options.saveEvery)
     }
   }
 
-  function saveNow() {
+  function saveNow(cb) {
     if(saving) return
     saving = true
     let data = ""
@@ -84,19 +87,23 @@ module.exports = file => {
     try {
       fs.appendFileSync(file, data)
       saving = false
+      cb()
     } catch(err) {
       db.emit('error', err)
+      cb(err)
     }
   }
 
-  function saveNExit() {
-    saveNow()
-    process.exit(process.exitCode)
+  function stop(cb) {
+    stopped = true
+    saveNow(cb)
   }
 
-  process.on('SIGINT', saveNExit)
-  process.on('SIGTERM', saveNExit)
-  process.on('SIGBREAK', saveNExit)
+  function onExitSignal(cb) {
+    process.on('SIGINT', () => stop(cb))
+    process.on('SIGTERM', () => stop(cb))
+    process.on('SIGBREAK', () => stop(cb))
+  }
 
   function persist(cb) {
     saving = true
@@ -120,6 +127,8 @@ module.exports = file => {
   load()
 
   db.add = add
+  db.stop = stop
+  db.onExitSignal = onExitSignal
 
   return db
 }
