@@ -9,14 +9,14 @@ const readline = require('readline')
 class BabyDB extends EventEmitter {}
 
 
-module.exports = file => {
+module.exports = (file, opts) => {
   const db = new BabyDB()
-  let options = {
+  let options = Object.assign({
     loadOnStart: true,
 
     saveEvery: 3000,
     maxRecsEvery: 3072,   /* 3072 records every 3 seconds */
-  }
+  }, opts)
   let linenum = 0
   let saveBuffer = []
   let savetimer
