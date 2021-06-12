@@ -42,16 +42,18 @@ userdb.on('done', () => {
   userdb.add({ type: 'new', userid: jill, info: { name: 'jill', mood: 'sleepy'}})
   userdb.add({ type: 'update', userid: jill, info: { mood: 'hungry'}})
 
+  console.log('waiting 5 seconds to add james...')
   setTimeout(() => {
-    console.log('adding james')
     const james = ++userid;
     userdb.add({ type: 'new', userid: james, info: { name: 'james', mood: 'productive'}})
     userdb.add({ type: 'update', userid: james, info: { mood: 'zapped-out'}})
+
+    console.log('******')
+    console.log('Users loaded', JSON.stringify(USERS, 0, 2))
+    if(numerrs) console.log(`FOUND ${numerrs} errors!`)
+    console.log("ready to rumble....!")
+
   }, 5000)
 
-  console.log('******')
-  console.log('Users loaded', JSON.stringify(USERS, 0, 2))
-  if(numerrs) console.log(`FOUND ${numerrs} errors!`)
-  console.log("ready to rumble....!")
 })
 
