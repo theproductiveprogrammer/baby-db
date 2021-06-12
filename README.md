@@ -77,7 +77,32 @@ userdb.onExitSignal(() => {
 })
 ```
 
+## Options
 
+**Baby DB** supports the following options (defaults shown):
+
+```javascript
+const userdb = badb(file, {
+  loadOnStart: true, // otherwise call load()
+  saveEvery: 3000,   // persist to disk every 3 seconds
+  maxRecsEvery: 3072, // any additional spike of records beyond 3072 every 3 seconds will raise an 'overflow' event
+})
+```
+
+## Overflow
+
+**Baby DB** provides an option for ignoring data ‘spikes’ that may come up either accidentally or due to some malicious intent. 
+
+To handle overflow records, listen for the ‘overflow’ event:
+
+```javascript
+db.on('overflow', rec => {
+  // alert the navy
+  save_somewhere_else(rec)
+})
+```
+
+By default more than 1024 records every second is considered an ‘overflow’. This is easily changed using the options described in the Options section. In particular, setting the `maxRecsEvery` parameter to `0` will have **BabyDB** never mark any records as ‘overflow’.
 
 Enjoy!
 
