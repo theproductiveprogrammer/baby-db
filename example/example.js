@@ -6,6 +6,8 @@ const USERS = {}
 
 const userdb = badb(path.join(__dirname, 'users.db'), {
   loadOnStart: false,
+  saveEvery: 100,
+  maxRecsEvery: 10,
 })
 
 let numerrs = 0
