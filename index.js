@@ -8,6 +8,12 @@ class BabyDB extends EventEmitter {}
 
 module.exports = file => {
   const db = new BabyDB()
+  let options = {
+    saveEvery: 3000
+  }
+  let linenum = 0
+  let saveBuffer = []
+  let savetimer
 
   /*    way/
    * stream in the file, line-by-line, and process each line as a record
@@ -20,10 +26,9 @@ module.exports = file => {
     })
     input.on('end', () => db.emit('done'))
 
-    let num = 0
     const rl = readline.createInterface({ input, crlfDelay: Infinity })
     rl.on('line', line => {
-      num++
+      linenum++
       if(!line) return
       line = line.trim()
       if(!line) return
@@ -32,12 +37,12 @@ module.exports = file => {
       try {
         rec = JSON.parse(line)
       } catch(err) {
-        db.emit('error', `Failed parsing ${file}:${num}:${line}`)
+        db.emit('error', `Failed parsing ${file}:${linenum}:${line}`)
+        return
       }
-      if(!rec) return
 
       try {
-        db.emit('rec', rec, num)
+        db.emit('rec', rec, linenum)
       } catch(err) {
         db.emit('error', err)
       }
@@ -45,7 +50,42 @@ module.exports = file => {
     })
   }
 
+  function add(rec) {
+    try {
+      save(rec)
+    } catch(err) {
+      db.emit('error', err)
+      return
+    }
+
+    linenum++
+    db.emit('rec', rec, linenum)
+  }
+
+
+  function save(rec) {
+    saveBuffer.push(JSON.stringify(rec) + '\n')
+    if(!savetimer) {
+      savetimer = setTimeout(() => persist(() => savetimer = 0), options.saveEvery)
+    }
+  }
+
+  function persist(cb) {
+    p_1(0)
+
+    function p_1(ndx) {
+      if(ndx >= saveBuffer.length) return cb()
+      let data = ""
+      for(;ndx < saveBuffer.length;ndx++) data += saveBuffer[ndx]
+      fs.appendFile(file, data, err => {
+        if(err) db.emit('error', err)
+      })
+    }
+  }
+
   load()
+
+  db.add = add
 
   return db
 }

@@ -12,9 +12,11 @@ userdb.on('error', err => {
   console.error(err)
 })
 
+let userid = 0
 userdb.on('rec', (rec, num) => {
   switch(rec.type) {
     case 'new':
+      userid = Math.max(rec.userid, userid)
       USERS[rec.userid] = rec.info
       break
     case 'update':
@@ -30,8 +32,19 @@ userdb.on('rec', (rec, num) => {
 })
 userdb.on('done', () => {
   console.log()
+
+  const jack = ++userid;
+  userdb.add({ type: 'new', userid: jack, info: { name: 'jack', mood: 'annoyed'}})
+  userdb.add({ type: 'update', userid: jack, info: { mood: 'really annoyed'}})
+  userdb.add({ type: 'delete', userid: userid})
+
+  const jill = ++userid;
+  userdb.add({ type: 'new', userid: jill, info: { name: 'jill', mood: 'sleepy'}})
+  userdb.add({ type: 'update', userid: jill, info: { mood: 'hungry'}})
+
   console.log('******')
   console.log('Users loaded', JSON.stringify(USERS, 0, 2))
   if(numerrs) console.log(`FOUND ${numerrs} errors!`)
   console.log("ready to rumble....!")
 })
+
