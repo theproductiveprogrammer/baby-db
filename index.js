@@ -66,7 +66,7 @@ module.exports = (file, opts) => {
    * save the record then pass it on for processing
    */
   function add(rec) {
-    if(saveBuffer.length > options.maxRecsEvery) {
+    if(options.maxRecsEvery && saveBuffer.length > options.maxRecsEvery) {
       db.emit('overflow', rec)
       db.emit('error', 'overflow', rec)
       return
