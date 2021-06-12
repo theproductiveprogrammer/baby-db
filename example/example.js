@@ -4,7 +4,9 @@ const path = require('path')
 
 const USERS = {}
 
-const userdb = badb(path.join(__dirname, 'users.db'))
+const userdb = badb(path.join(__dirname, 'users.db'), {
+  loadOnStart: false,
+})
 
 let numerrs = 0
 userdb.on('error', err => {
@@ -69,3 +71,6 @@ userdb.on('overflow', rec => {
 })
 
 userdb.onExitSignal(() => process.exit())
+
+userdb.load()
+userdb.load()
