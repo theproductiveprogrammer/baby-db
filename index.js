@@ -79,6 +79,7 @@ module.exports = file => {
       for(;ndx < saveBuffer.length;ndx++) data += saveBuffer[ndx]
       fs.appendFile(file, data, err => {
         if(err) db.emit('error', err)
+        p_1(ndx+1)
       })
     }
   }
