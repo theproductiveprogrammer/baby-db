@@ -59,8 +59,12 @@ module.exports = file => {
       return
     }
 
-    linenum++
-    db.emit('rec', rec, linenum)
+    try {
+      linenum++
+      db.emit('rec', rec, linenum)
+    } catch(err) {
+      db.emit('error', err)
+    }
   }
 
 
