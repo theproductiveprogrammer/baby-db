@@ -3,6 +3,9 @@ const EventEmitter = require('events')
 const fs = require('fs')
 const readline = require('readline')
 
+/*    understand/
+ * BabyDB is an event emitter which is a nice way of setting up a  database
+ */
 class BabyDB extends EventEmitter {}
 
 
@@ -52,6 +55,9 @@ module.exports = file => {
     })
   }
 
+  /*    way/
+   * save the record then pass it on for processing
+   */
   function add(rec) {
     try {
       save(rec)
@@ -69,6 +75,11 @@ module.exports = file => {
   }
 
 
+  /*    way/
+   * we perist the record periodically as a JSON encoded line
+   * NB: If JSON encoding fails we expect the add function to
+   * report the error to the user
+   */
   function save(rec) {
     const line = JSON.stringify(rec) + '\n'
     if(stopped) throw `DB ${file} stopped. Cannot save ${line}`
@@ -78,6 +89,10 @@ module.exports = file => {
     }
   }
 
+  /*    understand/
+   * we use this to save immediately. Useful for signal handler
+   * and when stopping/exiting
+   */
   function saveNow(cb) {
     if(saving) return
     saving = true
@@ -94,17 +109,35 @@ module.exports = file => {
     }
   }
 
+  /*    understand/
+   * we stop the db and save whatever we have right away
+   */
   function stop(cb) {
     stopped = true
     saveNow(cb)
   }
 
+  /*    understand/
+   * handle common exit signals to ensure the best chance of persistence
+   */
   function onExitSignal(cb) {
     process.on('SIGINT', () => stop(cb))
     process.on('SIGTERM', () => stop(cb))
     process.on('SIGBREAK', () => stop(cb))
   }
 
+  /*    way/
+   * persist the data to disk by creating a string of all the
+   * pending records in the buffer and appending them to the
+   * db file
+   *
+   *    understand/
+   * during the persistence it is possible we will get more records as
+   * the user calls `add()`. Therefore we keep track of what we have
+   * read and don't stop writing until the buffer is actually empty.
+   *
+   * TODO: report high volume DOS-type record spikes
+   */
   function persist(cb) {
     saving = true
     p_1(0)
@@ -124,11 +157,17 @@ module.exports = file => {
     }
   }
 
-  load()
-
+  /*    way/
+   * We add properties so we can write simpler class methods
+   */
   db.add = add
   db.stop = stop
   db.onExitSignal = onExitSignal
+
+  /*    understand
+   * we auto load the data on construction
+   */
+  load()
 
   return db
 }
