@@ -12,18 +12,25 @@ class BabyDB extends EventEmitter {}
 module.exports = file => {
   const db = new BabyDB()
   let options = {
-    saveEvery: 3000
+    loadOnStart: true,
+
+    saveEvery: 3000,
+    maxRecsEvery: 3072,   /* 3072 records every 3 seconds */
   }
   let linenum = 0
   let saveBuffer = []
   let savetimer
   let saving = false
   let stopped = false
+  let loaded = false
 
   /*    way/
    * stream in the file, line-by-line, and process each line as a record
    */
   function load() {
+    if(loaded) return
+    loaded = true
+
     const input = fs.createReadStream(file)
     input.on('error', err => {
       if(err.code === 'ENOENT') db.emit('done')
@@ -59,6 +66,12 @@ module.exports = file => {
    * save the record then pass it on for processing
    */
   function add(rec) {
+    if(saveBuffer.length > options.maxRecsEvery) {
+      db.emit('overflow', rec)
+      db.emit('error', 'overflow', rec)
+      return
+    }
+
     try {
       save(rec)
     } catch(err) {
@@ -135,8 +148,6 @@ module.exports = file => {
    * during the persistence it is possible we will get more records as
    * the user calls `add()`. Therefore we keep track of what we have
    * read and don't stop writing until the buffer is actually empty.
-   *
-   * TODO: report high volume DOS-type record spikes
    */
   function persist(cb) {
     saving = true
@@ -160,6 +171,7 @@ module.exports = file => {
   /*    way/
    * We add properties so we can write simpler class methods
    */
+  db.load = load
   db.add = add
   db.stop = stop
   db.onExitSignal = onExitSignal
@@ -167,7 +179,7 @@ module.exports = file => {
   /*    understand
    * we auto load the data on construction
    */
-  load()
+  if(options.loadOnStart) load()
 
   return db
 }

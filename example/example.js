@@ -26,6 +26,7 @@ userdb.on('rec', (rec, num) => {
     case 'delete':
       delete USERS[rec.userid]
       break
+    case 'ignore': break;
     default:
       throw `Did not understand record type: "${rec.type}", on line: ${num}`
   }
@@ -55,8 +56,13 @@ userdb.on('done', () => {
 
   }, 5000)
 
+  for(let i = 0;i < 10000;i++) {
+    userdb.add({ type: 'ignore', userid: i+1000, info: {}})
+  }
+
+})
+userdb.on('overflow', rec => {
+  console.error('overflow record', rec)
 })
 
-userdb.onExitSignal(() => {
-  process.exit()
-})
+userdb.onExitSignal(() => process.exit())
