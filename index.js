@@ -14,6 +14,7 @@ module.exports = file => {
   let linenum = 0
   let saveBuffer = []
   let savetimer
+  let saving = false
 
   /*    way/
    * stream in the file, line-by-line, and process each line as a record
@@ -70,11 +71,16 @@ module.exports = file => {
     }
   }
 
+
   function persist(cb) {
+    saving = true
     p_1(0)
 
     function p_1(ndx) {
-      if(ndx >= saveBuffer.length) return cb()
+      if(ndx >= saveBuffer.length) {
+        saving = false
+        return cb()
+      }
       let data = ""
       for(;ndx < saveBuffer.length;ndx++) data += saveBuffer[ndx]
       fs.appendFile(file, data, err => {
