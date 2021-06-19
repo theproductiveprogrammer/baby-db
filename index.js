@@ -115,10 +115,10 @@ module.exports = (file, opts) => {
     try {
       fs.appendFileSync(file, data)
       saving = false
-      cb()
+      cb && cb()
     } catch(err) {
       db.emit('error', err)
-      cb(err)
+      cb && cb(err)
     }
   }
 
