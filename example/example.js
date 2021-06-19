@@ -37,7 +37,10 @@ userdb.on('rec', (rec, num) => {
   }
 })
 userdb.on('done', () => {
+  console.log('userdb loaded')
+  all_done_msg()
   console.log()
+
   let loaderrs = numerrs
 
   const jack = ++userid;
@@ -71,8 +74,29 @@ userdb.on('done', () => {
 userdb.on('overflow', rec => {
   console.error('overflow record', rec)
 })
+userdb.on('stopped', () => console.log("userdb stopped"))
 
 userdb.onExitSignal(() => process.exit())
 
 userdb.load()
 userdb.load()
+
+const proddb = badb(path.join(__dirname, 'products.db'))
+proddb.on('error', err => console.error(err))
+proddb.on('rec', (rec, num) => console.log(rec,num))
+proddb.on('done', () => {
+  console.log('products loaded')
+  proddb.add({ name: "iPhone" })
+  proddb.add({ name: "Tesla" })
+  proddb.add({ name: "The Complete Works of William Shakespear" })
+  proddb.add({ name: "The Incomplete Works of Billy Boy" })
+  proddb.add({ name: "Doughnuts" })
+  all_done_msg()
+})
+proddb.on('stopped', () => console.log("proddb stopped"))
+
+let num_done = 0
+function all_done_msg() {
+  num_done++
+  if(num_done === badb.numdb()) console.log(`All databases loaded!`)
+}

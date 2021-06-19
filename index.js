@@ -9,14 +9,56 @@ const readline = require('readline')
 class BabyDB extends EventEmitter {}
 
 
-module.exports = (file, opts) => {
+/*    understand/
+ * keep track of all databases just so we can do stuff like stop them
+ * all on exit etc
+ */
+const DBS = []
+function numdb() { return DBS.length }
+/*    understand/
+ * stop all the DB's we are managing, invoking the callback
+ * when they all have stopped
+ */
+function stopAll(cb) {
+  let num_stopped = 0
+  DBS.map(db => db.stop(() => {
+    num_stopped++
+    if(num_stopped == numdb()) {
+      cb && cb()
+    }
+  }))
+}
+/*    understand/
+ * handle common exit signals to ensure the best chance of persistence
+ * invoking the callback once
+ */
+function onExitSignal(cb) {
+  let callback_called = false
+  process.on('SIGINT', () => stopAll(cb_1))
+  process.on('SIGTERM', () => stopAll(cb_1))
+  process.on('SIGBREAK', () => stopAll(cb_1))
+
+  function cb_1() {
+    if(callback_called) return
+    callback_called = true
+    cb && cb()
+  }
+}
+
+
+
+
+function newDB(file, opts) {
   const db = new BabyDB()
+  DBS.push(db)
+
   let options = Object.assign({
     loadOnStart: true,
 
     saveEvery: 3000,
     maxRecsEvery: 3072,   /* 3072 records every 3 seconds */
   }, opts)
+
   let linenum = 0
   let saveBuffer = []
   let savetimer
@@ -126,17 +168,15 @@ module.exports = (file, opts) => {
    * we stop the db and save whatever we have right away
    */
   function stop(cb) {
+    if(stopped) {
+      cb && cb()
+      return
+    }
     stopped = true
-    saveNow(cb)
-  }
-
-  /*    understand/
-   * handle common exit signals to ensure the best chance of persistence
-   */
-  function onExitSignal(cb) {
-    process.on('SIGINT', () => stop(cb))
-    process.on('SIGTERM', () => stop(cb))
-    process.on('SIGBREAK', () => stop(cb))
+    saveNow(() => {
+      db.emit('stopped')
+      cb && cb()
+    })
   }
 
   /*    way/
@@ -174,6 +214,7 @@ module.exports = (file, opts) => {
   db.load = load
   db.add = add
   db.stop = stop
+  db.numdb = numdb
   db.onExitSignal = onExitSignal
 
   /*    understand
@@ -183,3 +224,9 @@ module.exports = (file, opts) => {
 
   return db
 }
+
+newDB.numdb = numdb
+newDB.stopAll = stopAll
+newDB.onExitSignal = onExitSignal
+
+module.exports = newDB
