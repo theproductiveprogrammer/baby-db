@@ -76,7 +76,7 @@ userdb.on('overflow', rec => {
 })
 userdb.on('stopped', () => console.log("userdb stopped"))
 
-userdb.onExitSignal(() => process.exit())
+userdb.onExitSignal(() => all_exited('userdb'))
 
 userdb.load()
 userdb.load()
@@ -94,9 +94,19 @@ proddb.on('done', () => {
   all_done_msg()
 })
 proddb.on('stopped', () => console.log("proddb stopped"))
+proddb.onExitSignal(() => all_exited('proddb'))
 
 let num_done = 0
 function all_done_msg() {
   num_done++
   if(num_done === badb.numdb()) console.log(`All databases loaded!`)
+}
+
+let num_exit = 0
+function all_exited(name) {
+  console.log(`${name} exit done...`)
+  num_exit++
+  if(num_exit !== badb.numdb()) return
+  console.log("All DB's stopped")
+  process.exit()
 }
