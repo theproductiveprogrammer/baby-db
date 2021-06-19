@@ -28,10 +28,10 @@ To keep things simple, while you could have all data stored in a single log file
 ### Example
 
 ```javascript
-const badb = require('baby-db')
+const babydb = require('baby-db')
 
 ...
-const userdb = badb(userfile)
+const userdb = babydb(userfile)
 userdb.on('error', err => console.error(err))
 userdb.on('rec', (rec, num) => {
   switch(rec.type) {
@@ -63,7 +63,7 @@ userdb.on('done', () => {
   console.log("ready to rumble....!")
 })
 
-userdb.onExitSignal(() => process.exit())
+babydb.onExitSignal(() => process.exit())
 
 ```
 
@@ -72,7 +72,7 @@ userdb.onExitSignal(() => process.exit())
 **Baby DB** is designed to support persisting it’s data and cleanly exiting. You can do this by calling `db.stop()` or (recommended), by installing the `onExitSignal()` handler which will trap all common exit signals and flush the data to disk.
 
 ```javascript
-userdb.onExitSignal(() => {
+babydb.onExitSignal(() => {
   process.exit() // use process.exit() otherwise the application will not exit
 })
 ```
@@ -82,7 +82,7 @@ userdb.onExitSignal(() => {
 **Baby DB** supports the following options (defaults shown):
 
 ```javascript
-const userdb = badb(file, {
+const userdb = babydb(file, {
   loadOnStart: true, // otherwise call load()
   saveEvery: 3000,   // persist to disk every 3 seconds
   maxRecsEvery: 3072, // any additional spike of records beyond 3072 every 3 seconds will raise an 'overflow' event
@@ -96,7 +96,7 @@ const userdb = badb(file, {
 To handle overflow records, listen for the ‘overflow’ event:
 
 ```javascript
-db.on('overflow', rec => {
+userdb.on('overflow', rec => {
   // alert the navy
   save_somewhere_else(rec)
 })
