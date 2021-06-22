@@ -215,6 +215,7 @@ function newDB(file, opts) {
   db.add = add
   db.stop = stop
   db.numdb = numdb
+  db.numdbs = numdb
   db.onExitSignal = onExitSignal
 
   /*    understand
@@ -226,6 +227,7 @@ function newDB(file, opts) {
 }
 
 newDB.numdb = numdb
+newDB.numdbs = numdb
 newDB.stopAll = stopAll
 newDB.onExitSignal = onExitSignal
 
