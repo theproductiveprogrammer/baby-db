@@ -1,6 +1,7 @@
 'use strict'
 const EventEmitter = require('events')
 const fs = require('fs')
+const path = require('path')
 const readline = require('readline')
 
 /*    understand/
@@ -206,6 +207,15 @@ function newDB(file, opts) {
         p_1(ndx+1)
       })
     }
+  }
+
+  /*    way/
+   * ensure the path to the database exists
+   */
+  if(!fs.existsSync(file)) {
+    const loc = path.dirname(file)
+    if(!fs.existsSync(loc)) fs.mkdirSync(loc, { recursive: true })
+    fs.closeSync(fs.openSync(file, 'a'))
   }
 
   /*    way/

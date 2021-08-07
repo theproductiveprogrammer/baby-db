@@ -4,7 +4,7 @@ const path = require('path')
 
 const USERS = {}
 
-const userdb = badb(path.join(__dirname, 'users.db'), {
+const userdb = badb(path.join(__dirname, 'db', 'users.db'), {
   loadOnStart: false,
   saveEvery: 100,
   maxRecsEvery: 10,
