@@ -269,7 +269,7 @@ function newDB(file, opts) {
   /*    understand
    * we auto load the data on construction
    */
-  if(options.loadOnStart) load()
+  if(options.loadOnStart) process.nextTick(() => load())
 
   return db
 }
