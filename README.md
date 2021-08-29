@@ -33,20 +33,20 @@ const babydb = require('baby-db')
 ...
 const userdb = babydb(userfile)
 userdb.on('error', err => console.error(err))
-userdb.on('rec', (rec, num) => {
+userdb.on('rec', (rec, linenum) => {
   switch(rec.type) {
     case 'new':
       USERS[rec.userid] = rec.info
       break
     case 'update':
-      if(!USERS[rec.userid]) throw `Cannot update non-existent record on line: ${num}`
+      if(!USERS[rec.userid]) throw `Cannot update non-existent record on line: ${linenum}`
       Object.assign(USERS[rec.userid], rec.info)
       break
     case 'delete':
       delete USERS[rec.userid]
       break
     default:
-      throw `Did not understand record type: "${rec.type}", on line: ${num}`
+      throw `Did not understand record type: "${rec.type}", on line: ${linenum}`
   }
 })
 userdb.on('done', () => {
