@@ -10,6 +10,7 @@ const logdb = badb(path.join(__dirname, 'logs', 'log.db'), {
 })
 logdb.on('error', err => console.error(err))
 logdb.on('rec', (rec, num) => console.log(rec,num))
+logdb.on('rollover', () => logdb.add('SUMMARY RECORD'))
 logdb.on('done', () => {
   console.log('logs loaded')
   for(let i = 0;i < 10;i++) {

@@ -211,22 +211,20 @@ function newDB(file, opts) {
         return cb()
       }
 
-      rollover(() => {
-        let old = saveBuffer
-        let data = ""
+      let old = saveBuffer
+      let data = ""
 
-        /* yes this is faster than Array.join() ! */
-        for(let i = 0, len = saveBuffer.length;i < len;i++) data += saveBuffer[i]
+      /* yes this is faster than Array.join() ! */
+      for(let i = 0, len = saveBuffer.length;i < len;i++) data += saveBuffer[i]
 
-        saveBuffer = []
+      saveBuffer = []
 
-        fs.appendFile(file, data, err => {
-          if(err) {
-            saveBuffer = old.concat(saveBuffer)
-            return db.emit('error', err)
-          }
-          p_1()
-        })
+      fs.appendFile(file, data, err => {
+        if(err) {
+          saveBuffer = old.concat(saveBuffer)
+          return db.emit('error', err)
+        }
+        rollover(() => p_1())
       })
     }
   }
