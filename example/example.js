@@ -24,6 +24,12 @@ logdb.on('done', () => {
   }
 })
 
+let num_done = 0
+function all_done_msg() {
+  num_done++
+  if(num_done === badb.numdb()) console.log(`All databases loaded!`)
+}
+
 const USERS = {}
 
 const userdb = badb(path.join(__dirname, 'db', 'users.db'), {
@@ -117,12 +123,6 @@ proddb.on('done', () => {
 })
 proddb.on('stopped', () => console.log("proddb stopped"))
 proddb.onExitSignal(() => all_exited('proddb'))
-
-let num_done = 0
-function all_done_msg() {
-  num_done++
-  if(num_done === badb.numdb()) console.log(`All databases loaded!`)
-}
 
 let num_exit = 0
 function all_exited(name) {
