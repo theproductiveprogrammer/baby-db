@@ -193,7 +193,8 @@ function newDB(file, opts) {
   /*    way/
    * persist the data to disk by creating a string of all the
    * pending records in the buffer and appending them to the
-   * db file
+   * db file, rolling over to a new file if we are over the
+   * rolloverLimit
    *
    *    understand/
    * during the persistence it is possible we will get more records as
@@ -209,22 +210,38 @@ function newDB(file, opts) {
         saving = false
         return cb()
       }
-      let old = saveBuffer
-      let data = ""
 
-      /* yes this is faster than Array.join() ! */
-      for(let i = 0, len = saveBuffer.length;i < len;i++) data += saveBuffer[i]
+      rollover(() => {
+        let old = saveBuffer
+        let data = ""
 
-      saveBuffer = []
+        /* yes this is faster than Array.join() ! */
+        for(let i = 0, len = saveBuffer.length;i < len;i++) data += saveBuffer[i]
 
-      fs.appendFile(file, data, err => {
-        if(err) {
-          saveBuffer = old.concat(saveBuffer)
-          return db.emit('error', err)
-        }
-        p_1()
+        saveBuffer = []
+
+        fs.appendFile(file, data, err => {
+          if(err) {
+            saveBuffer = old.concat(saveBuffer)
+            return db.emit('error', err)
+          }
+          p_1()
+        })
       })
     }
+  }
+
+  /*    way/
+   * if we hit more than options.rolloverLimit lines in the current file,
+   * we move it to an archive and start anew
+   */
+  function rollover(cb) {
+    if(!options.rolloverLimit) return cb()
+    if(linenum < options.rolloverLimit) return cb()
+    const ts = (new Date()).toISOString().replace(/:/g,'_')
+    const p = path.parse(file)
+    const nfile = path.join(p.dir, `${p.name}-${ts}-${linenum}${p.ext}`)
+    fs.rename(file, nfile, cb)
   }
 
   /*    way/
