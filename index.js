@@ -77,6 +77,7 @@ function newDB(file, opts) {
   function load() {
     if(loaded) return
     loaded = true
+    if(!file) return db.emit('done')
 
     const input = fs.createReadStream(file)
     input.on('error', err => {
@@ -147,7 +148,8 @@ function newDB(file, opts) {
   function save(rec) {
     if(options.parseJSON) rec = JSON.stringify(rec)
     const line = rec + '\n'
-    if(stopped) throw `DB ${file} stopped. Cannot save ${line}`
+    const name = file || "stdout"
+    if(stopped) throw `DB ${name} stopped. Cannot save ${line}`
     saveBuffer.push(line)
     if(!savetimer) {
       savetimer = setTimeout(() => persist(() => savetimer = 0), options.saveEvery)
@@ -166,7 +168,8 @@ function newDB(file, opts) {
     for(let i = 0;i < saveBuffer.length;i++) data += saveBuffer[i]
     saveBuffer = []
     try {
-      fs.appendFileSync(file, data)
+      if(!file) fs.writeSync(process.stdout.fd, data)
+      else fs.appendFileSync(file, data)
       saving = false
       cb && cb()
     } catch(err) {
@@ -219,7 +222,14 @@ function newDB(file, opts) {
 
       saveBuffer = []
 
-      fs.appendFile(file, data, err => {
+      if(!file) fs.write(process.stdout.fd, data, err => {
+        if(err) {
+          saveBuffer = old.concat(saveBuffer)
+          return db.emit('error', err)
+        }
+        p_1()
+      })
+      else fs.appendFile(file, data, err => {
         if(err) {
           saveBuffer = old.concat(saveBuffer)
           return db.emit('error', err)
@@ -236,6 +246,7 @@ function newDB(file, opts) {
   function rollover(cb) {
     if(!options.rolloverLimit) return cb()
     if(linenum < options.rolloverLimit) return cb()
+    if(!file) return cb()
     const ts = (new Date()).toISOString().replace(/:/g,'_')
     const p = path.parse(file)
     const nfile = path.join(p.dir, `${p.name}-${ts}-${linenum}${p.ext}`)
@@ -250,7 +261,7 @@ function newDB(file, opts) {
   /*    way/
    * ensure the path to the database exists
    */
-  if(!fs.existsSync(file)) {
+  if(file && !fs.existsSync(file)) {
     const loc = path.dirname(file)
     if(!fs.existsSync(loc)) fs.mkdirSync(loc, { recursive: true })
     fs.closeSync(fs.openSync(file, 'a'))
