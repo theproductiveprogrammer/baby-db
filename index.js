@@ -201,19 +201,19 @@ function newDB(file, opts) {
    */
   function persist(cb) {
     saving = true
-    p_1(0)
+    p_1()
 
-    function p_1(ndx) {
-      if(ndx >= saveBuffer.length) {
+    function p_1() {
+      if(!saveBuffer.length) {
         saving = false
-        saveBuffer = []
         return cb()
       }
       let data = ""
-      for(;ndx < saveBuffer.length;ndx++) data += saveBuffer[ndx]
+      for(let i = 0, len = saveBuffer.length;i < len;i++) data += saveBuffer[i]
       fs.appendFile(file, data, err => {
-        if(err) db.emit('error', err)
-        p_1(ndx+1)
+        if(err) return db.emit('error', err)
+        saveBuffer = []
+        p_1()
       })
     }
   }
