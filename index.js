@@ -51,7 +51,6 @@ function onExitSignal(cb) {
 
 function newDB(file, opts) {
   const db = new BabyDB()
-  DBS.push(db)
 
   let options = Object.assign({
     loadOnStart: true,
@@ -59,6 +58,8 @@ function newDB(file, opts) {
     saveEvery: 3000,
     maxRecsEvery: 3072,   /* 3072 records every 3 seconds */
   }, opts)
+
+  if(!options.unmanaged) DBS.push(db)
 
   let linenum = 0
   let saveBuffer = []

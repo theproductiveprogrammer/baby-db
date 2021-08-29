@@ -86,6 +86,7 @@ const userdb = babydb(file, {
   loadOnStart: true, // otherwise call load()
   saveEvery: 3000,   // persist to disk every 3 seconds
   maxRecsEvery: 3072, // any additional spike of records beyond 3072 every 3 seconds will raise an 'overflow' event
+  unmanaged: false,   // stopAll() and onExitSignal() will ignore this database if true
 })
 ```
 
