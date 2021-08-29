@@ -162,6 +162,7 @@ function newDB(file, opts) {
     if(saving) return
     saving = true
     let data = ""
+    /* yes this is faster than Array.join() ! */
     for(let i = 0;i < saveBuffer.length;i++) data += saveBuffer[i]
     saveBuffer = []
     try {
