@@ -239,7 +239,12 @@ function newDB(file, opts) {
     const ts = (new Date()).toISOString().replace(/:/g,'_')
     const p = path.parse(file)
     const nfile = path.join(p.dir, `${p.name}-${ts}-${linenum}${p.ext}`)
-    fs.rename(file, nfile, cb)
+    fs.rename(file, nfile, err => {
+      if(err) return cb(err)
+      linenum = 0
+      db.emit('rollover')
+      cb()
+    })
   }
 
   /*    way/
