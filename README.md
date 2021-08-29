@@ -87,7 +87,28 @@ const userdb = babydb(file, {
   saveEvery: 3000,   // persist to disk every 3 seconds
   maxRecsEvery: 3072, // any additional spike of records beyond 3072 every 3 seconds will raise an 'overflow' event
   unmanaged: false,   // stopAll() and onExitSignal() will ignore this database if true
+  rolloverLimit: 0    // causes the file to roll over when the number of records goes over (see below)
 })
+```
+
+## Rollover
+
+When using an append-only log, it's common to find that it grows very large very quickly.
+
+**Baby DB** handles this problem by allowing you to specify a `rolloverLimit` in your options. Once the number of records in a file goes beyond this number, it is archived in the format:
+
+```
+  filename-<timestamp>-<number of records>.ext
+```
+
+**NB**: The number of records in the file could be above the actual `rolloverLimit` depending on how many additional records came in during the write period.
+
+### Snapshot record(s)
+
+When we set a rollover, the old records are no longer processed and so, if they need to be, it is helpful to add some 'summary' records at the start of the new roll(-ed)-over file that captures what we need from the old records. To do this, listen for the 'rollover' event and use that to add the summary records. For example:
+
+```javascript
+babydb.on('rollover', () => babydb.add({ type: 'summary', info: { ... }, meta: { ... }}))
 ```
 
 ## Overflow
