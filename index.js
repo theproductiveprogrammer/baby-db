@@ -57,6 +57,9 @@ function newDB(file, opts) {
 
     saveEvery: 3000,
     maxRecsEvery: 3072,   /* 3072 records every 3 seconds */
+
+    parseJSON: true,
+
   }, opts)
 
   if(!options.unmanaged) DBS.push(db)
@@ -90,11 +93,15 @@ function newDB(file, opts) {
       if(!line) return
 
       let rec
-      try {
-        rec = JSON.parse(line)
-      } catch(err) {
-        db.emit('error', `Failed parsing ${file}:${linenum}:${line}`)
-        return
+      if(options.parseJSON) {
+        try {
+          rec = JSON.parse(line)
+        } catch(err) {
+          db.emit('error', `Failed parsing ${file}:${linenum}:${line}`)
+          return
+        }
+      } else {
+        rec = line
       }
 
       try {
@@ -138,7 +145,8 @@ function newDB(file, opts) {
    * report the error to the user
    */
   function save(rec) {
-    const line = JSON.stringify(rec) + '\n'
+    if(options.parseJSON) rec = JSON.stringify(rec)
+    const line = rec + '\n'
     if(stopped) throw `DB ${file} stopped. Cannot save ${line}`
     saveBuffer.push(line)
     if(!savetimer) {

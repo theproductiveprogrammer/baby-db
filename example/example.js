@@ -2,6 +2,24 @@
 const badb = require('..')
 const path = require('path')
 
+const logdb = badb(path.join(__dirname, 'logs', 'log.db'), {
+  saveEvery: 100,
+  maxRecsEvery: 10,
+  parseJSON: false, // Logs are not JSON
+})
+logdb.on('error', err => console.error(err))
+logdb.on('rec', (rec, num) => console.log(rec,num))
+logdb.on('done', () => {
+  console.log('logs loaded')
+  logdb.add("Testing Testing")
+  logdb.add("123")
+  logdb.add("Testing Testing")
+  logdb.add("123")
+  logdb.add("Testing Testing")
+  logdb.add("123")
+  logdb.add("The End")
+})
+
 const USERS = {}
 
 const userdb = badb(path.join(__dirname, 'db', 'users.db'), {
