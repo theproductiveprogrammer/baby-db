@@ -208,11 +208,19 @@ function newDB(file, opts) {
         saving = false
         return cb()
       }
+      let old = saveBuffer
       let data = ""
+
+      /* yes this is faster than Array.join() ! */
       for(let i = 0, len = saveBuffer.length;i < len;i++) data += saveBuffer[i]
+
+      saveBuffer = []
+
       fs.appendFile(file, data, err => {
-        if(err) return db.emit('error', err)
-        saveBuffer = []
+        if(err) {
+          saveBuffer = old.concat(saveBuffer)
+          return db.emit('error', err)
+        }
         p_1()
       })
     }
