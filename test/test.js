@@ -5,6 +5,34 @@ const assert = require('assert')
 
 const babydb = require('..')
 
+/*    understand/
+ * testing objects
+ */
+const OBJS = [
+  { testing: 123 },
+  { testing: 123, without: "you here with me" },
+  { we: "have",
+    a: {
+      deeper: {
+        connection: {
+          to: "food"
+        }
+      },
+      than: {
+        to: "entertainment"
+      }
+    },
+    more: "stuff",
+  },
+]
+const OBJS_OUTPUT = OBJS.map(o => JSON.stringify(o)).join('\n') + "\n"
+const OUTS = [
+  "Testing 123",
+  "Hello hello, anyone out there?",
+  "What a wondeful world!",
+]
+
+
 /*    problem/
  * we want to test a write to the console
  *    way/
@@ -49,27 +77,10 @@ describe('baby-db', function() {
       const hook = captureStream(process.stdout)
 
       const db = babydb(null, { saveEvery: 5 })
-      const objs = [
-        { testing: 123 },
-        { testing: 123, without: "you here with me" },
-        { we: "have",
-          a: {
-            deeper: {
-              connection: {
-                to: "food"
-              }
-            },
-            than: {
-              to: "entertainment"
-            }
-          },
-          more: "stuff",
-        },
-      ]
-      objs.map(o => db.add(o))
+      OBJS.map(o => db.add(o))
 
       setTimeout(() => {
-        assert.equal(hook.captured(), objs.map(o => JSON.stringify(o)).join('\n') + "\n")
+        assert.equal(hook.captured(), OBJS_OUTPUT)
         hook.unhook()
         done()
       }, 25)
@@ -98,15 +109,10 @@ describe('baby-db', function() {
       const hook = captureStream(process.stdout)
 
       const db = babydb(null, { parseJSON: false, saveEvery: 5 })
-      const out = [
-        "Testing 123",
-        "Hello hello, anyone out there?",
-        "What a wondeful world!",
-      ]
-      out.map(o => db.add(o))
+      OUTS.map(o => db.add(o))
 
       setTimeout(() => {
-        assert.equal(hook.captured(), out.join('\n') + "\n")
+        assert.equal(hook.captured(), OUTS.join('\n') + "\n")
         hook.unhook()
         done()
       }, 25)
@@ -131,6 +137,21 @@ describe('baby-db', function() {
         fs.unlink(dbfile, () => done())
       }, 25)
     })
+
+    it('writes to file', function(done) {
+      const dbfile = path.join(__dirname, 'db1')
+      const db = babydb(dbfile, {
+        saveEvery: 5
+      })
+      OBJS.map(o => db.add(o))
+      setTimeout(() => {
+        db.stop()
+        const data = fs.readFileSync(dbfile)
+        assert.equal(data, OBJS_OUTPUT)
+        fs.unlink(dbfile, () => done())
+      }, 25)
+    })
+
 
   })
 
