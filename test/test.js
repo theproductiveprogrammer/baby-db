@@ -174,6 +174,34 @@ describe('baby-db', function() {
       db.stop()
     })
 
+    it('updates file', function(done) {
+      const dbfile = path.join(__dirname, 'db1')
+      const db = babydb(dbfile, {
+        saveEvery: 5
+      })
+      OBJS.map(o => db.add(o))
+
+      setTimeout(() => {
+        const rdb = babydb(dbfile, {
+          saveEvery: 5
+        })
+        const objs = []
+        rdb.on('rec', rec => {
+          objs.push(rec)
+        })
+        rdb.on('done', () => {
+          OBJS.map(o => rdb.add(o))
+          setTimeout(() => {
+            const expected = OBJS.concat(OBJS)
+            assert.deepEqual(objs, expected)
+            fs.unlink(dbfile, () => done())
+          }, 15)
+
+        })
+      }, 15)
+
+    })
+
   }) /* output to file */
 
 })
