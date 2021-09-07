@@ -1,4 +1,6 @@
 'use strict'
+const path = require('path')
+const fs = require('fs')
 const assert = require('assert')
 
 const babydb = require('..')
@@ -113,6 +115,23 @@ describe('baby-db', function() {
 
 
   }) /* output to console */
+
+
+  describe('output to file', function () {
+
+    it('creates file', function(done) {
+      const dbfile = path.join(__dirname, 'db1')
+      const db = babydb(dbfile, {
+        saveEvery: 5
+      })
+      db.add({ testing: 123 })
+      setTimeout(() => {
+        assert.equal(fs.existsSync(dbfile), true)
+        db.stop()
+        fs.unlink(dbfile, () => done())
+      }, 25)
+    })
+
   })
 
 })
