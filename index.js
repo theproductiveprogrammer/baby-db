@@ -188,6 +188,8 @@ function newDB(file, opts) {
     }
     stopped = true
     saveNow(() => {
+      if(savetimer) clearTimeout(savetimer)
+      savetimer = 0
       db.emit('stopped')
       cb && cb()
     })
