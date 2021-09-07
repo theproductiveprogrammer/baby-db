@@ -222,7 +222,7 @@ function newDB(file, opts) {
 
       saveBuffer = []
 
-      if(!file) fs.write(process.stdout.fd, data, err => {
+      if(!file) process.stdout.write(data, err => {
         if(err) {
           saveBuffer = old.concat(saveBuffer)
           return db.emit('error', err)

@@ -4,7 +4,7 @@
   "description": "Easy to Use, Robust, file-based DB for Node",
   "main": "index.js",
   "scripts": {
-    "test": "node example/example.js"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -16,5 +16,12 @@
     "url": "https://github.com/theproductiveprogrammer/baby-db/issues"
   },
   "homepage": "https://github.com/theproductiveprogrammer/baby-db#readme",
-  "keywords": ["database","db","log"]
+  "keywords": [
+    "database",
+    "db",
+    "log"
+  ],
+  "devDependencies": {
+    "mocha": "^9.1.1"
+  }
 }
