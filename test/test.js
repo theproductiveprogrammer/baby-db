@@ -153,6 +153,27 @@ describe('baby-db', function() {
     })
 
 
-  })
+    it('reads from file', function(done) {
+      const dbfile = path.join(__dirname, 'db1')
+      const db = babydb(dbfile)
+      OBJS.map(o => db.add(o))
+      db.on('stopped', () => {
+        const rdb = babydb(dbfile)
+        const objs = []
+        rdb.on('rec', rec => {
+          objs.push(rec)
+        })
+        rdb.on('done', () => {
+          rdb.on('stopped', () => {
+            assert.deepEqual(objs, OBJS)
+            fs.unlink(dbfile, () => done())
+          })
+          rdb.stop()
+        })
+      })
+      db.stop()
+    })
+
+  }) /* output to file */
 
 })
