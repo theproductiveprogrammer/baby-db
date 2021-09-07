@@ -14,7 +14,7 @@ function captureStream(stream) {
   let buf = ""
   stream.write = function(chunk, encoding, callback) {
     buf += chunk.toString()
-    //prev.apply(stream, arguments)
+    //prev.apply(stream, arguments) /* uncomment to see errors */
   }
 
   return {
@@ -40,6 +40,75 @@ describe('baby-db', function() {
         hook.unhook()
         done()
       }, 25)
+    })
+
+    it('prints multiple lines to stdout', function(done) {
+
+      const hook = captureStream(process.stdout)
+
+      const db1 = babydb(null, { saveEvery: 5 })
+      const objs = [
+        { testing: 123 },
+        { testing: 123, without: "you here with me" },
+        { we: "have",
+          a: {
+            deeper: {
+              connection: {
+                to: "food"
+              }
+            },
+            than: {
+              to: "entertainment"
+            }
+          },
+          more: "stuff",
+        },
+      ]
+      objs.map(o => db1.add(o))
+
+      setTimeout(() => {
+        assert.equal(hook.captured(), objs.map(o => JSON.stringify(o)).join('\n') + "\n")
+        hook.unhook()
+        done()
+      }, 25)
+
+    })
+
+
+    it('prints plain to stdout', function(done) {
+
+      const hook = captureStream(process.stdout)
+
+      const db1 = babydb(null, { parseJSON: false, saveEvery: 5 })
+      const out = "Testing 123"
+      db1.add(out)
+
+      setTimeout(() => {
+        assert.equal(hook.captured(), out + "\n")
+        hook.unhook()
+        done()
+      }, 25)
+
+    })
+
+    it('prints multiple lines plain to stdout', function(done) {
+
+      const hook = captureStream(process.stdout)
+
+      const db1 = babydb(null, { parseJSON: false, saveEvery: 5 })
+      const out = [
+        "Testing 123",
+        "Hello hello, anyone out there?",
+        "What a wondeful world!",
+      ]
+      out.map(o => db1.add(o))
+
+      setTimeout(() => {
+        assert.equal(hook.captured(), out.join('\n') + "\n")
+        hook.unhook()
+        done()
+      }, 25)
+
     })
 
 
