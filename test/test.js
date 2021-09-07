@@ -31,9 +31,9 @@ describe('baby-db', function() {
 
       const hook = captureStream(process.stdout)
 
-      const db1 = babydb(null, { saveEvery: 5 })
+      const db = babydb(null, { saveEvery: 5 })
       const obj = { testing: 123 }
-      db1.add(obj)
+      db.add(obj)
 
       setTimeout(() => {
         assert.equal(hook.captured(), JSON.stringify(obj) + "\n")
@@ -46,7 +46,7 @@ describe('baby-db', function() {
 
       const hook = captureStream(process.stdout)
 
-      const db1 = babydb(null, { saveEvery: 5 })
+      const db = babydb(null, { saveEvery: 5 })
       const objs = [
         { testing: 123 },
         { testing: 123, without: "you here with me" },
@@ -64,7 +64,7 @@ describe('baby-db', function() {
           more: "stuff",
         },
       ]
-      objs.map(o => db1.add(o))
+      objs.map(o => db.add(o))
 
       setTimeout(() => {
         assert.equal(hook.captured(), objs.map(o => JSON.stringify(o)).join('\n') + "\n")
@@ -79,9 +79,9 @@ describe('baby-db', function() {
 
       const hook = captureStream(process.stdout)
 
-      const db1 = babydb(null, { parseJSON: false, saveEvery: 5 })
+      const db = babydb(null, { parseJSON: false, saveEvery: 5 })
       const out = "Testing 123"
-      db1.add(out)
+      db.add(out)
 
       setTimeout(() => {
         assert.equal(hook.captured(), out + "\n")
@@ -95,13 +95,13 @@ describe('baby-db', function() {
 
       const hook = captureStream(process.stdout)
 
-      const db1 = babydb(null, { parseJSON: false, saveEvery: 5 })
+      const db = babydb(null, { parseJSON: false, saveEvery: 5 })
       const out = [
         "Testing 123",
         "Hello hello, anyone out there?",
         "What a wondeful world!",
       ]
-      out.map(o => db1.add(o))
+      out.map(o => db.add(o))
 
       setTimeout(() => {
         assert.equal(hook.captured(), out.join('\n') + "\n")
@@ -112,6 +112,7 @@ describe('baby-db', function() {
     })
 
 
+  }) /* output to console */
   })
 
 })
