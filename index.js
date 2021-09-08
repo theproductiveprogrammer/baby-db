@@ -75,6 +75,7 @@ function newDB(file, opts) {
    * stream in the file, line-by-line, and process each line as a record
    */
   function load() {
+    if(stopped) return
     if(loaded) return
     loaded = true
     if(!file) return db.emit('done')
