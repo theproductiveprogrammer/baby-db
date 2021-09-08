@@ -239,5 +239,53 @@ describe('baby-db', function() {
       db.stop()
     })
 
+  }) /* overflow handling */
+
+
+  describe('rollover', function () {
+
+    it('rolls over when too many records', function(done) {
+      const dbfile = path.join(__dirname, 'db1')
+      const db = babydb(dbfile, {
+        saveEvery: 5,
+        rolloverLimit: 5,
+      })
+      const rolledover = { type: 'rolled over' }
+      db.on('rollover', () => {
+        db.add(rolledover)
+      })
+
+      for(let i = 0;i < 10;i++) db.add({ testing: 123 })
+      setTimeout(() => {
+        for(let i = 0;i < 3;i++) db.add({ testing: 123 })
+      }, 15)
+
+      setTimeout(() => {
+        const rdb = babydb(dbfile)
+        let first = true
+        rdb.on('rec', rec => {
+          if(first) assert.deepEqual(rec, rolledover)
+          first = false
+        })
+        rdb.on('stopped', () => {
+          const dbfolder = path.dirname(dbfile)
+          fs.readdir(dbfolder, (err, files) => {
+            assert.equal(err, null)
+            un_link_1(0)
+
+            function un_link_1(ndx) {
+              if(ndx >= files.length) return done()
+              const curr = files[ndx]
+              if(!curr.startsWith('db1')) return un_link_1(ndx+1)
+              else fs.unlink(path.join(dbfolder,curr), () => un_link_1(ndx+1))
+            }
+          })
+        })
+        babydb.stopAll()
+      }, 25)
+    })
+
   })
+
+
 })
