@@ -204,4 +204,40 @@ describe('baby-db', function() {
 
   }) /* output to file */
 
+  describe('overflow handling', function () {
+
+    it('does not write overflow records', function(done) {
+      const dbfile = path.join(__dirname, 'db1')
+      const db = babydb(dbfile, {
+        saveEvery: 5,
+        maxRecsEvery: 100,
+      })
+      let numrecs = 0
+      let overflowed = 0
+      db.on('rec', rec => numrecs++)
+      db.on('overflow', rec => overflowed++)
+      db.on('error', (err, rec) => assert.equal(err, 'overflow'))
+
+      let totalrecs = 0
+      for(let i = 0;i < 100;i++) {
+        OBJS.map(o => db.add(o))
+        totalrecs += OBJS.length
+      }
+
+      assert.equal(numrecs < 110, true)
+      assert.equal(overflowed, totalrecs - numrecs)
+
+      db.on('stopped', () => {
+        const rdb = babydb(dbfile)
+        let numread = 0
+        rdb.on('rec', rec => numread++)
+        rdb.on('done', () => {
+          assert.equal(numread, numrecs)
+          fs.unlink(dbfile, () => done())
+        })
+      })
+      db.stop()
+    })
+
+  })
 })
