@@ -169,8 +169,11 @@ function newDB(file, opts) {
     for(let i = 0;i < saveBuffer.length;i++) data += saveBuffer[i]
     saveBuffer = []
     try {
-      if(!file) fs.writeSync(process.stdout.fd, data)
-      else fs.appendFileSync(file, data)
+      if(!file) {
+        if(file !== 0) fs.writeSync(process.stdout.fd, data)
+      } else {
+        fs.appendFileSync(file, data)
+      }
       saving = false
       cb && cb()
     } catch(err) {
@@ -224,20 +227,27 @@ function newDB(file, opts) {
       /* yes this is faster than Array.join() ! */
       for(let i = 0, len = sav_.length;i < len;i++) data += sav_[i]
 
-      if(!file) process.stdout.write(data, err => {
-        if(err) {
-          saveBuffer = sav_.concat(saveBuffer)
-          return db.emit('error', err)
+      if(!file) {
+        if(file !== 0) {
+          process.stdout.write(data, err => {
+            if(err) {
+              saveBuffer = sav_.concat(saveBuffer)
+              return db.emit('error', err)
+            }
+            p_1()
+          })
+        } else {
+          p_1()
         }
-        p_1()
-      })
-      else fs.appendFile(file, data, err => {
-        if(err) {
-          saveBuffer = sav_.concat(saveBuffer)
-          return db.emit('error', err)
-        }
-        rollover(() => p_1())
-      })
+      } else {
+        fs.appendFile(file, data, err => {
+          if(err) {
+            saveBuffer = sav_.concat(saveBuffer)
+            return db.emit('error', err)
+          }
+          rollover(() => p_1())
+        })
+      }
     }
   }
 
@@ -293,3 +303,4 @@ newDB.stopAll = stopAll
 newDB.onExitSignal = onExitSignal
 
 module.exports = newDB
+
