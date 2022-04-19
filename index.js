@@ -232,7 +232,8 @@ function newDB(file, opts) {
           process.stdout.write(data, err => {
             if(err) {
               saveBuffer = sav_.concat(saveBuffer)
-              return db.emit('error', err)
+              db.emit('error', err)
+              return cb(err)
             }
             p_1()
           })
@@ -243,9 +244,19 @@ function newDB(file, opts) {
         fs.appendFile(file, data, err => {
           if(err) {
             saveBuffer = sav_.concat(saveBuffer)
-            return db.emit('error', err)
+            db.emit('error', err)
+            return cb(err)
           }
-          rollover(() => p_1())
+
+          rollover(err => {
+            if(err) {
+              saveBuffer = sav_.concat(saveBuffer)
+              db.emit('error', err)
+              return cb(err)
+            }
+            p_1()
+          })
+
         })
       }
     }
