@@ -108,7 +108,15 @@ When using an append-only log, it's common to find that it grows very large very
 When we set a rollover, the old records are no longer processed and so, if they need to be, it is helpful to add some 'summary' records at the start of the new roll(-ed)-over file that captures what we need from the old records. To do this, listen for the 'rollover' event and use that to add the summary records. For example:
 
 ```javascript
-babydb.on('rollover', () => babydb.add({ type: 'summary', info: { ... }, meta: { ... }}))
+babydb.on('rollover', create_summary_records);
+
+function create_summary_records() {
+    // Remember you may need to make a copy of your
+    // existing data structure because adding
+    // new records will usually cause the data
+    // structures to be updated
+    babydb.add({ type: 'summary', info: { ... }, meta: { ... }}))
+}
 ```
 
 ## Overflow
