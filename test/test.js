@@ -59,9 +59,10 @@ describe('baby-db', function() {
 
 		it('prints to stdout', function(done) {
 
+
 			const hook = captureStream(process.stdout)
 
-			const db = babydb(null, { saveEvery: 5 })
+			const db = babydb(0, { saveEvery: 5 })
 			const obj = { testing: 123 }
 			db.add(obj)
 
@@ -76,7 +77,7 @@ describe('baby-db', function() {
 
 			const hook = captureStream(process.stdout)
 
-			const db = babydb(null, { saveEvery: 5 })
+			const db = babydb(0, { saveEvery: 5 })
 			OBJS.map(o => db.add(o))
 
 			setTimeout(() => {
@@ -92,7 +93,7 @@ describe('baby-db', function() {
 
 			const hook = captureStream(process.stdout)
 
-			const db = babydb(null, { parseJSON: false, saveEvery: 5 })
+			const db = babydb(0, { parseJSON: false, saveEvery: 5 })
 			const out = "Testing 123"
 			db.add(out)
 
@@ -108,7 +109,7 @@ describe('baby-db', function() {
 
 			const hook = captureStream(process.stdout)
 
-			const db = babydb(null, { parseJSON: false, saveEvery: 5 })
+			const db = babydb(0, { parseJSON: false, saveEvery: 5 })
 			OUTS.map(o => db.add(o))
 
 			setTimeout(() => {
