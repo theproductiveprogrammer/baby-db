@@ -14,43 +14,42 @@ class BabyDB extends EventEmitter {}
  * keep track of all databases just so we can do stuff like stop them
  * all on exit etc
  */
-const DBS = []
-function numdb() { return DBS.length }
+const DBS = [];
+function numdb() { return DBS.length; }
 /*    understand/
  * stop all the DB's we are managing, invoking the callback
  * when they all have stopped
  */
 function stopAll(cb) {
-	let num_stopped = 0
+	let num_stopped = 0;
 	DBS.map(db => db.stop(() => {
-		num_stopped++
+		num_stopped++;
 		if(num_stopped == numdb()) {
-			cb && cb()
+			cb && cb();
 		}
-	}))
+	}));
 }
 /*    understand/
  * handle common exit signals to ensure the best chance of persistence
  * invoking the callback once
  */
 function onExitSignal(cb) {
-	let callback_called = false
-	process.on('SIGINT', () => stopAll(cb_1))
-	process.on('SIGTERM', () => stopAll(cb_1))
-	process.on('SIGBREAK', () => stopAll(cb_1))
+	let callback_called = false;
+	process.on('SIGINT', () => stopAll(cb_1));
+	process.on('SIGTERM', () => stopAll(cb_1));
+	process.on('SIGBREAK', () => stopAll(cb_1));
 
 	function cb_1() {
-		if(callback_called) return
-		callback_called = true
-		cb && cb()
+		if(callback_called) return;
+		callback_called = true;
+		cb && cb();
 	}
 }
 
 
 
-
 function newDB(file, opts) {
-	const db = new BabyDB()
+	const db = new BabyDB();
 
 	let options = Object.assign({
 		loadOnStart: true,
@@ -60,59 +59,59 @@ function newDB(file, opts) {
 
 		parseJSON: true,
 
-	}, opts)
+	}, opts);
 
-	if(!options.unmanaged) DBS.push(db)
+	if(!options.unmanaged) DBS.push(db);
 
-	let linenum = 0
-	let saveBuffer = []
-	let savetimer
-	let saving = false
-	let stopped = false
-	let loaded = false
+	let linenum = 0;
+	let saveBuffer = [];
+	let savetimer;
+	let saving = false;
+	let stopped = false;
+	let loaded = false;
 
 	/*    way/
 	 * stream in the file, line-by-line, and process each line as a record
 	 */
 	function load() {
-		if(stopped) return
-		if(loaded) return
-		loaded = true
-		if(!file) return db.emit('done')
+		if(stopped) return;
+		if(loaded) return;
+		loaded = true;
+		if(!file) return db.emit('done');
 
-		const input = fs.createReadStream(file)
+		const input = fs.createReadStream(file);
 		input.on('error', err => {
-			if(err.code === 'ENOENT') db.emit('done')
-			else db.emit('error', err)
+			if(err.code === 'ENOENT') db.emit('done');
+			else db.emit('error', err);
 		})
-		input.on('end', () => db.emit('done'))
+		input.on('end', () => db.emit('done'));
 
-		const rl = readline.createInterface({ input, crlfDelay: Infinity })
+		const rl = readline.createInterface({ input, crlfDelay: Infinity });
 		rl.on('line', line => {
-			linenum++
-			if(!line) return
-			line = line.trim()
-			if(!line) return
+			linenum++;
+			if(!line) return;
+			line = line.trim();
+			if(!line) return;
 
-			let rec
+			let rec;
 			if(options.parseJSON) {
 				try {
-					rec = JSON.parse(line)
+					rec = JSON.parse(line);
 				} catch(err) {
-					db.emit('error', `Failed parsing ${file}:${linenum}:${line}`)
-					return
+					db.emit('error', `Failed parsing ${file}:${linenum}:${line}`);
+					return;
 				}
 			} else {
-				rec = line
+				rec = line;
 			}
 
 			try {
-				db.emit('rec', rec, linenum)
+				db.emit('rec', rec, linenum);
 			} catch(err) {
-				db.emit('error', err)
+				db.emit('error', err);
 			}
 
-		})
+		});
 	}
 
 	/*    way/
@@ -120,23 +119,23 @@ function newDB(file, opts) {
 	 */
 	function add(rec) {
 		if(options.maxRecsEvery && saveBuffer.length > options.maxRecsEvery) {
-			db.emit('overflow', rec)
-			db.emit('error', 'overflow', rec)
-			return
+			db.emit('overflow', rec);
+			db.emit('error', 'overflow', rec);
+			return;
 		}
 
 		try {
-			save(rec)
+			save(rec);
 		} catch(err) {
-			db.emit('error', err)
-			return
+			db.emit('error', err);
+			return;
 		}
 
 		try {
-			linenum++
-			db.emit('rec', rec, linenum)
+			linenum++;
+			db.emit('rec', rec, linenum);
 		} catch(err) {
-			db.emit('error', err)
+			db.emit('error', err);
 		}
 	}
 
@@ -147,13 +146,13 @@ function newDB(file, opts) {
 	 * report the error to the user
 	 */
 	function save(rec) {
-		if(options.parseJSON) rec = JSON.stringify(rec)
-		const line = rec + '\n'
-		const name = file || "stdout"
-		if(stopped) throw `DB ${name} stopped. Cannot save ${line}`
-		saveBuffer.push(line)
+		if(options.parseJSON) rec = JSON.stringify(rec);
+		const line = rec + '\n';
+		const name = file || "stdout";
+		if(stopped) throw `DB ${name} stopped. Cannot save ${line}`;
+		saveBuffer.push(line);
 		if(!savetimer) {
-			savetimer = setTimeout(() => persist(() => savetimer = 0), options.saveEvery)
+			savetimer = setTimeout(() => persist(() => savetimer = 0), options.saveEvery);
 		}
 	}
 
@@ -162,23 +161,23 @@ function newDB(file, opts) {
 	 * and when stopping/exiting
 	 */
 	function saveNow(cb) {
-		if(saving) return
-		saving = true
-		let data = ""
+		if(saving) return;
+		saving = true;
+		let data = "";
 		/* yes this is faster than Array.join() ! */
-		for(let i = 0;i < saveBuffer.length;i++) data += saveBuffer[i]
-		saveBuffer = []
+		for(let i = 0;i < saveBuffer.length;i++) data += saveBuffer[i];
+		saveBuffer = [];
 		try {
 			if(!file) {
-				if(file !== 0) fs.writeSync(process.stdout.fd, data)
+				if(file !== 0) fs.writeSync(process.stdout.fd, data);
 			} else {
-				fs.appendFileSync(file, data)
+				fs.appendFileSync(file, data);
 			}
-			saving = false
-			cb && cb()
+			saving = false;
+			cb && cb();
 		} catch(err) {
-			db.emit('error', err)
-			cb && cb(err)
+			db.emit('error', err);
+			cb && cb(err);
 		}
 	}
 
@@ -187,15 +186,15 @@ function newDB(file, opts) {
 	 */
 	function stop(cb) {
 		if(stopped) {
-			cb && cb()
+			cb && cb();
 			return
 		}
-		stopped = true
+		stopped = true;
 		saveNow(() => {
-			if(savetimer) clearTimeout(savetimer)
-			savetimer = 0
-			db.emit('stopped')
-			cb && cb()
+			if(savetimer) clearTimeout(savetimer);
+			savetimer = 0;
+			db.emit('stopped');
+			cb && cb();
 		})
 	}
 
@@ -211,53 +210,53 @@ function newDB(file, opts) {
 	 * read and don't stop writing until the buffer is actually empty.
 	 */
 	function persist(cb) {
-		saving = true
-		p_1()
+		saving = true;
+		p_1();
 
 		function p_1() {
 			if(!saveBuffer.length) {
-				saving = false
-				return cb()
+				saving = false;
+				return cb();
 			}
 
-			let sav_ = saveBuffer
-			saveBuffer = []
-			let data = ""
+			let sav_ = saveBuffer;
+			saveBuffer = [];
+			let data = "";
 
 			/* yes this is faster than Array.join() ! */
-			for(let i = 0, len = sav_.length;i < len;i++) data += sav_[i]
+			for(let i = 0, len = sav_.length;i < len;i++) data += sav_[i];
 
 			if(!file) {
 				if(file !== 0) {
 					process.stdout.write(data, err => {
 						if(err) {
-							saveBuffer = sav_.concat(saveBuffer)
-							db.emit('error', err)
-							return cb(err)
+							saveBuffer = sav_.concat(saveBuffer);
+							db.emit('error', err);
+							return cb(err);
 						}
-						p_1()
-					})
+						p_1();
+					});
 				} else {
-					p_1()
+					p_1();
 				}
 			} else {
 				fs.appendFile(file, data, err => {
 					if(err) {
-						saveBuffer = sav_.concat(saveBuffer)
-						db.emit('error', err)
-						return cb(err)
+						saveBuffer = sav_.concat(saveBuffer);
+						db.emit('error', err);
+						return cb(err);
 					}
 
 					rollover(err => {
 						if(err) {
-							saveBuffer = sav_.concat(saveBuffer)
-							db.emit('error', err)
-							return cb(err)
+							saveBuffer = sav_.concat(saveBuffer);
+							db.emit('error', err);
+							return cb(err);
 						}
-						p_1()
-					})
+						p_1();
+					});
 
-				})
+				});
 			}
 		}
 	}
@@ -267,17 +266,17 @@ function newDB(file, opts) {
 	 * we move it to an archive and start anew
 	 */
 	function rollover(cb) {
-		if(!options.rolloverLimit) return cb()
-		if(linenum < options.rolloverLimit) return cb()
-		if(!file) return cb()
-		const ts = (new Date()).toISOString().replace(/:/g,'_')
-		const p = path.parse(file)
-		const nfile = path.join(p.dir, `${p.name}-${ts}-${linenum}${p.ext}`)
+		if(!options.rolloverLimit) return cb();
+		if(linenum < options.rolloverLimit) return cb();
+		if(!file) return cb();
+		const ts = (new Date()).toISOString().replace(/:/g,'_');
+		const p = path.parse(file);
+		const nfile = path.join(p.dir, `${p.name}-${ts}-${linenum}${p.ext}`);
 		fs.rename(file, nfile, err => {
-			if(err) return cb(err)
-			linenum = 0
-			db.emit('rollover')
-			cb()
+			if(err) return cb(err);
+			linenum = 0;
+			db.emit('rollover');
+			cb();
 		})
 	}
 
@@ -285,33 +284,33 @@ function newDB(file, opts) {
 	 * ensure the path to the database exists
 	 */
 	if(file && !fs.existsSync(file)) {
-		const loc = path.dirname(file)
-		if(!fs.existsSync(loc)) fs.mkdirSync(loc, { recursive: true })
-		fs.closeSync(fs.openSync(file, 'a'))
+		const loc = path.dirname(file);
+		if(!fs.existsSync(loc)) fs.mkdirSync(loc, { recursive: true });
+		fs.closeSync(fs.openSync(file, 'a'));
 	}
 
 	/*    way/
 	 * We add properties so we can write simpler class methods
 	 */
-	db.load = load
-	db.add = add
-	db.stop = stop
-	db.numdb = numdb
-	db.numdbs = numdb
-	db.onExitSignal = onExitSignal
+	db.load = load;
+	db.add = add;
+	db.stop = stop;
+	db.numdb = numdb;
+	db.numdbs = numdb;
+	db.onExitSignal = onExitSignal;
 
 	/*    understand
 	 * we auto load the data on construction
 	 */
-	if(options.loadOnStart) process.nextTick(() => load())
+	if(options.loadOnStart) process.nextTick(() => load());
 
-	return db
+	return db;
 }
 
-newDB.numdb = numdb
-newDB.numdbs = numdb
-newDB.stopAll = stopAll
-newDB.onExitSignal = onExitSignal
+newDB.numdb = numdb;
+newDB.numdbs = numdb;
+newDB.stopAll = stopAll;
+newDB.onExitSignal = onExitSignal;
 
-module.exports = newDB
+module.exports = newDB;
 
