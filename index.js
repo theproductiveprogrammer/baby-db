@@ -156,7 +156,12 @@ function newDB(file, opts) {
 		if(stopped) throw `DB ${name} stopped. Cannot save ${line}`;
 		saveBuffer.push(line);
 		if(!savetimer) {
-			savetimer = setTimeout(() => persist(() => savetimer = 0), options.saveEvery);
+			savetimer = setTimeout(() => {
+				persist(err => {
+					if(err) db.emit('error', err);
+					savetimer = 0;
+				});
+			}, options.saveEvery);
 		}
 	}
 
