@@ -83,6 +83,10 @@ babydb.onExitSignal(() => {
 })
 ```
 
+## In-Memory Variant
+
+There are cases when you only want to manage the records transiently (without persisting). To do this, simply omit the `file` parameter from **Baby DB** and it will keep all records in memory. If you want the records to be printed to the console, pass the number `0` as the file and it will redirect records to the standard console.
+
 ## Options
 
 **Baby DB** supports the following options (defaults shown):
