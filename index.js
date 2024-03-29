@@ -79,12 +79,16 @@ function newDB(file, opts) {
 		loaded = true;
 		if(!file) return db.emit('done');
 
+		let loaderror = false;
 		const input = fs.createReadStream(file);
 		input.on('error', err => {
-			if(err.code === 'ENOENT') db.emit('done');
-			else db.emit('error', err);
+			if(err.code === 'ENOENT') return db.emit('done');
+			loaderror = true;
+			db.emit('error', err);
 		})
-		input.on('end', () => db.emit('done'));
+		input.on('end', () => {
+			if(!loaderror) db.emit('done');
+		});
 
 		const rl = readline.createInterface({ input, crlfDelay: Infinity });
 		rl.on('line', line => {
