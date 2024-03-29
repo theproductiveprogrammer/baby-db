@@ -212,81 +212,68 @@ function newDB(file, opts) {
 	 * pending records in the buffer and appending them to the
 	 * db file, rolling over to a new file if we are over the
 	 * rolloverLimit
-	 *
-	 *    understand/
-	 * during the persistence it is possible we will get more records as
-	 * the user calls `add()`. Therefore we keep track of what we have
-	 * read and don't stop writing until the buffer is actually empty.
 	 */
 	function persist(cb) {
+		if(!saveBuffer.length) return cb();
+
 		saving = true;
-		p_1();
+		let sav_ = saveBuffer;
+		saveBuffer = [];
 
-		function p_1() {
-			if(!saveBuffer.length) {
-				saving = false;
-				return cb();
+		const onDone = err => {
+			saving = false;
+			if(err) {
+				/* restore unsaved records on error */
+				saveBuffer = sav_.concat(saveBuffer);
 			}
+			return cb(err);
+		};
 
-			let sav_ = saveBuffer;
-			saveBuffer = [];
-			let data = "";
+		/* yes this is faster than Array.join() ! */
+		let data = "";
+		for(let i = 0, len = sav_.length;i < len;i++) data += sav_[i];
 
-			/* yes this is faster than Array.join() ! */
-			for(let i = 0, len = sav_.length;i < len;i++) data += sav_[i];
+		if(!file) { /* in-memory db */
+			if(file === 0) return process.stdout.write(data, onDone); /* the stdout writer version - '0' */
+			else return onDone();
+		} else { /* disk db */
 
-			if(!file) {
-				if(file !== 0) {
-					process.stdout.write(data, err => {
-						if(err) {
-							saveBuffer = sav_.concat(saveBuffer);
-							db.emit('error', err);
-							return cb(err);
-						}
-						p_1();
-					});
-				} else {
-					p_1();
-				}
-			} else {
-				fs.appendFile(file, data, err => {
-					if(err) {
-						saveBuffer = sav_.concat(saveBuffer);
-						db.emit('error', err);
-						return cb(err);
-					}
+			fs.appendFile(file, data, err => {
+				if(err) return onDone(err);
 
-					rollover(err => {
-						if(err) {
-							saveBuffer = sav_.concat(saveBuffer);
-							db.emit('error', err);
-							return cb(err);
-						}
-						p_1();
-					});
+				if(should_rollover_1()) rollover(onDone);
+				else onDone();
 
-				});
-			}
+			});
+
 		}
+
+		function should_rollover_1() {
+			return options.rolloverLimit && linenum >= options.rolloverLimit;
+		}
+
 	}
 
 	/*    way/
-	 * if we hit more than options.rolloverLimit lines in the current file,
-	 * we move it to an archive and start anew
+	 * move existing records to an archive and start anew
 	 */
 	function rollover(cb) {
-		if(!options.rolloverLimit) return cb();
-		if(linenum < options.rolloverLimit) return cb();
-		if(!file) return cb();
+		const onDone = err => {
+			if(err) return cb(`Rollover failed`);
+			else {
+				linenum = 0;
+				db.emit('rollover');
+				cb();
+			}
+		};
+
+		if(!file) return onDone();
+
 		const ts = (new Date()).toISOString().replace(/:/g,'_');
 		const p = path.parse(file);
 		const nfile = path.join(p.dir, `${p.name}-${ts}-${linenum}${p.ext}`);
-		fs.rename(file, nfile, err => {
-			if(err) return cb(err);
-			linenum = 0;
-			db.emit('rollover');
-			cb();
-		})
+
+		fs.rename(file, nfile, onDone);
 	}
 
 	/*    way/
