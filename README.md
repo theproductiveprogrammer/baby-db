@@ -115,17 +115,17 @@ When using an append-only log, it's common to find that it grows very large very
 
 ### Snapshot record(s)
 
-When we set a rollover, the old records are no longer processed and so, if they need to be, it is helpful to add some 'summary' records at the start of the new roll(-ed)-over file that captures what we need from the old records. To do this, listen for the 'rollover' event and use that to add the summary records. For example:
+When we set a rollover, the old records are no longer processed and so, we need to re-populate the database with a set of new, 'clean', records that captures the lastest state of our database. To do this, listen for the 'rollover' event and use that to add the these clean records. For example:
 
 ```javascript
 db1.on('rollover', create_summary_records);
 
-function create_summary_records() {
+function create_new_clean_records() {
     // Remember you may need to make a copy of your
     // existing data structure because adding
-    // new records will usually cause the data
-    // structures to be updated
-    db1.add({ type: 'summary', info: { ... }, meta: { ... }}))
+    // new records will cause the existing data
+    // structures to be updated with the 'rec' handler
+    db1.add({ type: 'new', info: { ... }, meta: { ... }}))
 }
 ```
 
@@ -136,6 +136,10 @@ There are times we would like to "clean" the database without waiting for the ro
 ```javascript
 db1.rollover(() => console.log("rollover done!");
 ```
+
+### Rollover is Safe
+
+Rollover is careful to first flush all records and only then trigger the new rollover file. This means that, even if it fails in between, all you need to do is to restore the database from the roll-ed over file.
 
 ## Overflow
 
