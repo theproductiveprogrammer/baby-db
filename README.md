@@ -28,42 +28,48 @@ To keep things simple, while you could have all data stored in a single log file
 ### Example
 
 ```javascript
-const babydb = require('baby-db')
+const babydb = require('baby-db');
 
 ...
-const userdb = babydb(userfile)
-userdb.on('error', err => console.error(err))
-userdb.on('rec', (rec, linenum) => {
+const db1 = babydb(file1);
+db1.on('error', err => console.error(err));
+db1.on('rec', (rec, linenum) => {
   switch(rec.type) {
     case 'new':
-      USERS[rec.userid] = rec.info
-      break
+      DATA1[rec.userid] = rec.info;
+      break;
     case 'update':
-      if(!USERS[rec.userid]) throw `Cannot update non-existent record on line: ${linenum}`
-      Object.assign(USERS[rec.userid], rec.info)
-      break
+      if(!DATA1[rec.userid]) throw `Cannot update non-existent record on line: ${linenum}`;
+      Object.assign(DATA1[rec.userid], rec.info);
+      break;
     case 'delete':
-      delete USERS[rec.userid]
-      break
+      delete DATA1[rec.userid];
+      break;
     default:
-      throw `Did not understand record type: "${rec.type}", on line: ${linenum}`
+      throw `Did not understand record type: "${rec.type}", on line: ${linenum}`.
   }
 })
-userdb.on('done', () => {
-
-  const jack = 2;
-  userdb.add({ type: 'new', userid: jack, info: { name: 'jack', mood: 'annoyed'}})
-  userdb.add({ type: 'update', userid: jack, info: { mood: 'really annoyed'}})
-  userdb.add({ type: 'delete', userid: jack})
-
-  const jill = 3;
-  userdb.add({ type: 'new', userid: jill, info: { name: 'jill', mood: 'sleepy'}})
-  userdb.add({ type: 'update', userid: jill, info: { mood: 'hungry'}})
-
+db1.on('done', () => {
   console.log("ready to rumble....!")
-})
+});
+  
+...
+function annoyed_jack() {
+  const jack = 2;
+  db1.add({ type: 'new', userid: jack, info: { name: 'jack', mood: 'annoyed'}})
+  db1.add({ type: 'update', userid: jack, info: { mood: 'really annoyed'}})
+  db1.add({ type: 'delete', userid: jack})
+}
 
-babydb.onExitSignal(() => process.exit())
+function sleepy_jill() {
+  const jill = 3;
+  db1.add({ type: 'new', userid: jill, info: { name: 'jill', mood: 'sleepy'}})
+  db1.add({ type: 'update', userid: jill, info: { mood: 'hungry'}})
+
+}
+...
+
+db1.onExitSignal(() => process.exit())
 
 ```
 
@@ -82,7 +88,7 @@ babydb.onExitSignal(() => {
 **Baby DB** supports the following options (defaults shown):
 
 ```javascript
-const userdb = babydb(file, {
+const db1 = babydb(file, {
   loadOnStart: true, // otherwise call load()
   saveEvery: 3000,   // persist to disk every 3 seconds
   maxRecsEvery: 3072, // any additional spike of records beyond 3072 every 3 seconds will raise an 'overflow' event
@@ -108,15 +114,23 @@ When using an append-only log, it's common to find that it grows very large very
 When we set a rollover, the old records are no longer processed and so, if they need to be, it is helpful to add some 'summary' records at the start of the new roll(-ed)-over file that captures what we need from the old records. To do this, listen for the 'rollover' event and use that to add the summary records. For example:
 
 ```javascript
-babydb.on('rollover', create_summary_records);
+db1.on('rollover', create_summary_records);
 
 function create_summary_records() {
     // Remember you may need to make a copy of your
     // existing data structure because adding
     // new records will usually cause the data
     // structures to be updated
-    babydb.add({ type: 'summary', info: { ... }, meta: { ... }}))
+    db1.add({ type: 'summary', info: { ... }, meta: { ... }}))
 }
+```
+
+### Manual Rollover
+
+There are times we would like to "clean" the database without waiting for the rollover limit to be reached. In such a case we can call the `db.rollover()` function directly. This will cause the data to flush to disk and then the rollover to be performed.
+
+```javascript
+db1.rollover(() => console.log("rollover done!");
 ```
 
 ## Overflow
