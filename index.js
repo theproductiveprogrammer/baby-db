@@ -291,6 +291,7 @@ function newDB(file, opts) {
 	db.load = load;
 	db.add = add;
 	db.stop = stop;
+	db.rollover = rollover,
 	db.numdb = numdb;
 	db.numdbs = numdb;
 	db.onExitSignal = onExitSignal;
