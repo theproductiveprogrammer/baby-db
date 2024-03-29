@@ -67,6 +67,7 @@ function newDB(file, opts) {
 	let saveBuffer = [];
 	let savetimer;
 	let saving = false;
+	let rollingover = false;
 	let stopped = false;
 	let loaded = false;
 
@@ -214,10 +215,11 @@ function newDB(file, opts) {
 	 * rolloverLimit
 	 */
 	function persist(cb) {
+		if(rollingover || saving) return;
 		if(!saveBuffer.length) return cb();
 
 		saving = true;
-		let sav_ = saveBuffer;
+		const sav_ = saveBuffer;
 		saveBuffer = [];
 
 		const onDone = err => {
@@ -254,15 +256,41 @@ function newDB(file, opts) {
 
 	}
 
-	/*    way/
-	 * move existing records to an archive and start anew
+	/*    understand/
+	 * Let's look at a sequence that could happen during
+	 * rollover:
+	 *     before rollover:
+	 *         latest disk record: 100
+	 *         latest memory record: 101
+	 *     after rollover:
+	 *         latest disk record: 102 (after persisiting)
+	 *         latest memory record: 102
+	 *         old rollover disk record: 100
+	 *
+	 * as we can see, once the new data is persisted
+	 * we are fine BUT it could be that we crash/fail
+	 * before that persistence in which case we will lose
+	 * the last few records. However this is the case 'normally'
+	 * as well - anytime we crash we are in danger of losing
+	 * the last few records.
+	 *
+	 *    way/
+	 * move existing records to an archive and start anew.
 	 */
 	function rollover(cb) {
+		if(stopped) return cb("cannot rollover after database is stopped");
+
+		rollingover = true;
+
 		const onDone = err => {
-			if(err) return cb(`Rollover failed`);
-			else {
+			rollingover = false;
+			if(err) {
+				return cb(`Rollover failed`);
+			} else {
 				linenum = 0;
+				saveBuffer = [];
 				db.emit('rollover');
+				rollingover = false;
 				cb();
 			}
 		};
